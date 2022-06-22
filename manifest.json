@@ -24,7 +24,8 @@
     },
     "host_permissions": [
         "https://*.linkedin.com/*",
-        "https://app.bullhornstaffing.com/*"
+        "https://app.bullhornstaffing.com/*",
+        "http://127.0.0.1:5000/*"
     ],
     "web_accessible_resources": [
         {
