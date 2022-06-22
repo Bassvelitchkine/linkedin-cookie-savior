@@ -57,7 +57,7 @@ const createOrUpdateCookie = (platformName, cookieName, cookieValue, expirationD
 // Function to send a request to the webhook according to the apiRequest schema
 
 // Function to parse the Bullhorn cookie and return the bullhorn username
-export const parseBullhornIdCookie = (rawCookie) => {
+const parseBullhornIdCookie = (rawCookie) => {
     const regex = /(?<=%22)[\w\d\.]+(%22)/g;
     const arrayOfMatches = rawCookie.match(regex);
 
@@ -67,3 +67,14 @@ export const parseBullhornIdCookie = (rawCookie) => {
     };
     return arrayOfMatches[i+1];
 }
+
+const parseLinkedInLangCookie = (rawCookie) => {
+    const regex = /(?<=\-).+/;
+    const match = rawCookie.match(regex);
+    if (match) {
+        return String(match[0]).toLowerCase();
+    } else {
+        return ""
+    }
+}
+
