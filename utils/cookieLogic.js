@@ -1,5 +1,7 @@
 import { isKeyInObject } from "./utils.js";
 
+const WEBHOOK = "http://127.0.0.1:5000/cookie";
+
 export const retrieveAndUpdateCookie = async (platformName, cookieDetails) => {
     return new Promise((resolve, _) => {
         chrome.cookies.get(cookieDetails, cookie => {
@@ -12,8 +14,7 @@ export const retrieveAndUpdateCookie = async (platformName, cookieDetails) => {
 // Function to check the storage and look for the cookie of a specific platform
 // Updates the cookie value if needed
 const createOrUpdateCookie = (platformName, cookieName, cookieValue, expirationDate) => {
-    let storedAt = new Date(Date.now());
-    storedAt = storedAt.toISOString();
+    const storedAt = Date.now();
 
     const cookieParams = {
         "value": cookieValue,
@@ -27,17 +28,19 @@ const createOrUpdateCookie = (platformName, cookieName, cookieValue, expirationD
                 const oldCookieValue = platformStorage[platformName][cookieName]["value"];
                 if (oldCookieValue !== cookieValue){
                     platformStorage[platformName][cookieName] = cookieParams;
-                    chrome.storage.local.set(platformStorage, _ => console.log(`Updated ${cookieName}`));
-                    if (platformName == "linkedin"){
-                        console.log("Will send a request");
-                    }
+                    chrome.storage.local.set(platformStorage, _ => {
+                        if (platformName == "linkedin"){
+                            sendCookie(cookieName, cookieParams);
+                        }
+                    });
                 }
             } else {
                 platformStorage[platformName][cookieName] = cookieParams;
-                chrome.storage.local.set(platformStorage, _ => console.log(`Created ${cookieName}`));
-                if (platformName == "linkedin"){
-                    console.log("Will send a request");
-                }
+                chrome.storage.local.set(platformStorage, _ => {
+                    if (platformName == "linkedin"){
+                        sendCookie(cookieName, cookieParams);
+                    }
+                });
             }
         } else {
             let cookieObject = {};
@@ -46,20 +49,52 @@ const createOrUpdateCookie = (platformName, cookieName, cookieValue, expirationD
             const platformStorage = {};
             platformStorage[platformName] = cookieObject;
 
-            chrome.storage.local.set(platformStorage, _ => console.log(`Created ${cookieName}`));
-            if (platformName == "linkedin"){
-                console.log("Will send a request");
-            }
+            chrome.storage.local.set(platformStorage, _ => {
+                if (platformName == "linkedin"){
+                    sendCookie(cookieName, cookieParams);
+                }
+            });
         }
     });
 };
 
 // Function to send a request to the webhook according to the apiRequest schema
+const sendCookie = (cookieName, linkedinCookie) => {
+    chrome.storage.local.get("bullhorn", bullhorn => {
+        if (bullhorn && bullhorn["bullhorn"] && bullhorn["bullhorn"]["UlEncodedIdentity"]) {
+            const headers = {
+                "Content-Type": "application/json"
+            };
+            console.log(linkedinCookie);
+            const {value, expires_at, stored_at} = linkedinCookie;
+            const body = {
+                "username": parseBullhornIdCookie(bullhorn["bullhorn"]["UlEncodedIdentity"]),
+                "cookie": {
+                    "name": cookieName,
+                    "value": (cookieName == "lang" ? parseLinkedInLangCookie(value): value),
+                    expires_at,
+                    stored_at
+                }
+            };
+
+            const request = new Request(WEBHOOK, {"method": "POST", "body": JSON.stringify(body), headers});
+            fetch(request).then(response => {
+                if (response.ok) {
+                    console.log("Successful response");
+                } else {
+                    console.log(response);
+                }
+            });
+        } else {
+            console.log("The bullhorn cookie is not in storage yet");
+        }
+    });
+}
 
 // Function to parse the Bullhorn cookie and return the bullhorn username
-const parseBullhornIdCookie = (rawCookie) => {
-    const regex = /(?<=%22)[\w\d\.]+(%22)/g;
-    const arrayOfMatches = rawCookie.match(regex);
+const parseBullhornIdCookie = ({value}) => {
+    const regex = /(?<=%22)[\w\d\.]+/g;
+    const arrayOfMatches = value.match(regex);
 
     let i = 0;
     while (arrayOfMatches[i] !== "username") {
@@ -68,13 +103,12 @@ const parseBullhornIdCookie = (rawCookie) => {
     return arrayOfMatches[i+1];
 }
 
-const parseLinkedInLangCookie = (rawCookie) => {
-    const regex = /(?<=\-).+/;
-    const match = rawCookie.match(regex);
+const parseLinkedInLangCookie = (value) => {
+    const regex = /(?<=\-).+/g;
+    const match = value.match(regex);
     if (match) {
         return String(match[0]).toLowerCase();
     } else {
         return ""
     }
-}
-
+};
