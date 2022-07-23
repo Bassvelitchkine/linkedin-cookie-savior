@@ -1,5 +1,10 @@
 {
     "linkedin": {
+        "publicIdentifier": {
+            "value": "bastienvelitchkine",
+            "expires_at": null,
+            "stored_at": 9487694209784
+        },
         "li_at": {
             "value": "OUeuEABeu37654hd1448iuEi",
             "expires_at": 1098394,
