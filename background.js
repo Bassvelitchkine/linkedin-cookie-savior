@@ -4,7 +4,7 @@ import { savePublicIdentifier } from "./utils/utils.js";
 
 /**
  * This logic is triggered whenever a page loads. We then check whether it's a linkedin page or a bullhorn one, and depending on the result of the check, we trigger the right cookie retrieval logic.
- * For linkedin, we want to retrieve "li_at" and "lang" cookies, for bullhorn, we want to retrieve the "UlEncodedIdentity" one.
+ * For linkedin, we want to retrieve the publicIdentifier from the html code of the page as well as the "li_at" and "lang" cookies, for bullhorn, we want to retrieve the "UlEncodedIdentity" cookie only.
  */
 chrome.tabs.onUpdated.addListener((tabId, {status}, {url}) => {
   if(status === "complete" && url){

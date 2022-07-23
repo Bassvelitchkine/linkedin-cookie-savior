@@ -51,6 +51,14 @@ const writeToLocalStorage = async (object) => {
     });
 };
 
+/**
+ * This ASYNCHRONOUS function saves the linkedin public identifier of the user in the chrome local storage in a suitable format and returns a promise that allows for asynchronous handling.
+ * @param {String} publicIdentifier the linkedin public identifier of the user
+ * @returns {Promise} a Promise that resolves to the object we just stored in the chrome local storage.
+ * 
+ * savePublicIdentifier("bastienvelitchkine");
+ * => Promise({"linkedin": {"publicIdentifier": {"value": "bastienvelitchkine", "expires_at": null, "stored_at": 98765456789}}});
+ */
 export const savePublicIdentifier = async (publicIdentifier) => {
     const time = Date.now();
     const payload = {

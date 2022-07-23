@@ -77,7 +77,7 @@ const createOrUpdateCookie = (platformName, cookieName, cookieValue, expirationD
 };
 
 /**
- * This function checks whether a bullhorn cookie is stored in the chrome.local.storage (we need that cookie to identify the chrome extension user). If such a cookie exist, we build a payload with the id of the user in it (extracted from the bullhorn cookie) and cookie data on the linkedin cookie that has been created or updated.
+ * This function checks whether a bullhorn cookie is stored in the chrome.local.storage (we need that cookie to identify the chrome extension user). If such a cookie exist, we build a payload with the id of the user in it (extracted from the bullhorn cookie) and cookie data on the linkedin cookie that has been created or updated, as well as the public identifier that was previously extracted from the linkedin html page.
  * We then send that payload to a webhook that will handle the json and resume the data processing to store the linkedin cookies in a remote spreadsheet.
  * @param {String} cookieName the name of the created/updated cookie
  * @param {Object} linkedinCookie data on the cookie that's been updated or created.
