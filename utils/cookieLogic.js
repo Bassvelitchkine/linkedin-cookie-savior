@@ -88,28 +88,32 @@ const createOrUpdateCookie = (platformName, cookieName, cookieValue, expirationD
 const sendCookie = (cookieName, linkedinCookie) => {
     chrome.storage.local.get("bullhorn", bullhorn => {
         if (bullhorn && bullhorn["bullhorn"] && bullhorn["bullhorn"]["UlEncodedIdentity"]) {
-            const headers = {
-                "Content-Type": "application/json"
-            };
-            console.log(linkedinCookie);
-            const {value, expires_at, stored_at} = linkedinCookie;
-            const body = {
-                "username": parseBullhornIdCookie(bullhorn["bullhorn"]["UlEncodedIdentity"]),
-                "cookie": {
-                    "name": cookieName,
-                    "value": (cookieName == "lang" ? parseLinkedInLangCookie(value): value),
-                    expires_at,
-                    stored_at
-                }
-            };
+            chrome.storage.local.get("linkedin", ({linkedin}) => {
+                const publicIdentifier = linkedin["publicIdentifier"]["value"];
+                const headers = {
+                    "Content-Type": "application/json"
+                };
+                const {value, expires_at, stored_at} = linkedinCookie;
+                const body = {
+                    "username": parseBullhornIdCookie(bullhorn["bullhorn"]["UlEncodedIdentity"]),
+                    "linkedin_public_identifier": publicIdentifier,
+                    "cookie": {
+                        "name": cookieName,
+                        "value": (cookieName == "lang" ? parseLinkedInLangCookie(value): value),
+                        expires_at,
+                        stored_at
+                    }
+                };
+    
+                const request = new Request(WEBHOOK, {"method": "POST", "body": JSON.stringify(body), headers});
+                fetch(request).then(response => {
+                    if (response.ok) {
+                        console.log("Successful response");
+                    } else {
+                        console.log(response);
+                    }
+                });
 
-            const request = new Request(WEBHOOK, {"method": "POST", "body": JSON.stringify(body), headers});
-            fetch(request).then(response => {
-                if (response.ok) {
-                    console.log("Successful response");
-                } else {
-                    console.log(response);
-                }
             });
         } else {
             console.log("The bullhorn cookie is not in storage yet");
